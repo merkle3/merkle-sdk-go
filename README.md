@@ -36,7 +36,7 @@ func main() {
 
 ### Stream transactions
 
-Access Merkle's private stream of transactions on Ethereum.
+Access Merkle's private stream of transactions on Ethereum. [Learn more](https://docs.usemerkle.com/transaction-stream/what-is-merkle-transaction-stream)
 
 ```golang
 package main
@@ -67,7 +67,7 @@ func main() {
 
 ### Stream auctions
 
-Stream auctions from the Merkle Private Pool. [Learn more in the docs](https://docs.usemerkle.com/private-pool/what-is-merkle-private-pool).
+Stream auctions from the Merkle Private Pool. [Learn more](https://docs.usemerkle.com/private-pool/what-is-merkle-private-pool).
 
 ```golang
 package main

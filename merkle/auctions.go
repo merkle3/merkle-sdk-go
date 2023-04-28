@@ -55,6 +55,15 @@ type RawAuction struct {
 	} `json:"transaction"`
 }
 
+type AuctionOptions struct {
+	Transaction  *types.Transaction
+	FeeRecipient common.Address
+}
+
+func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
+	return nil
+}
+
 func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	auctions := make(chan *Auction)
 	errStream := make(chan error)
