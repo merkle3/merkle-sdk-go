@@ -55,11 +55,11 @@ type RawAuction struct {
 	} `json:"transaction"`
 }
 
-func Auctions() (chan *Auction, chan error) {
+func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	auctions := make(chan *Auction)
 	errStream := make(chan error)
 
-	conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions", "", "")
+	conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "")
 
 	if err != nil {
 		go func() {
