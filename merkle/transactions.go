@@ -19,7 +19,7 @@ func NewTransactionStream(sdk *MerkleSDK) *TransactionStream {
 	}
 }
 
-func (t *TransactionStream) Stream(chainId int32) (chan *types.Transaction, chan error) {
+func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transaction, chan error) {
 	errStream := make(chan error)
 	txs := make(chan *types.Transaction)
 
@@ -36,7 +36,7 @@ func (t *TransactionStream) Stream(chainId int32) (chan *types.Transaction, chan
 
 	stream, err := broker.StreamReceivedTransactions(context.Background(), &brokerProto.TxStreamRequest{
 		ApiKey:  t.sdk.GetApiKey(),
-		ChainId: chainId,
+		ChainId: int32(chainId),
 	})
 
 	go func() {
