@@ -87,7 +87,7 @@ func main() {
         select {
             case <-err:
             // error happened
-            case auction <- auctions:
+            case auction := <-auctions:
             // process the auction, create a backrun
 
             // then send the bid
