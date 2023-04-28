@@ -8,7 +8,7 @@ The Merkle SDK is a great way to access our products.
 
 ## Install
 
-Install the Merkle broker client package:
+Install the Merkle SDK package:
 
 ```
 go get github.com/merkle3/merkle-sdk-go
