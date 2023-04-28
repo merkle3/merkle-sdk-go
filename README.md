@@ -54,9 +54,9 @@ func main() {
 
     for {
         select {
-            case <-err:
+            case e := <-err:
 			    // error happened
-			    fmt.Printf("error: %v\n", err)
+			    fmt.Printf("error: %v\n", e)
             case tx := <-txs:
                 // process the transaction
                 fmt.Printf("hash: %v\n", tx.Hash().String())
@@ -85,7 +85,7 @@ func main() {
 
     for {
         select {
-            case <-err:
+            case e := <-err:
             // error happened
             case auction := <-auctions:
             // process the auction, create a backrun
