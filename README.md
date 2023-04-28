@@ -55,9 +55,11 @@ func main() {
     for {
         select {
             case <-err:
-            // error happened
-            case tx <- txs:
-            // process the transaction
+			    // error happened
+			    fmt.Printf("error: %v\n", err)
+            case tx := <-txs:
+                // process the transaction
+                fmt.Printf("hash: %v\n", tx.Hash().String())
         }
     }
 }
