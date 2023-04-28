@@ -28,7 +28,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkle.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
 }
 ```
 
@@ -48,9 +48,9 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkle.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
 
-    txs, err := merkle.Transactions().Stream(1) // pass a chain id
+    txs, err := merkleSdk.Transactions().Stream(1) // pass a chain id
 
     for {
         select {
@@ -77,9 +77,9 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkle.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
 
-    auctions, err := merkle.Pool().Auctions()
+    auctions, err := merkleSdk.Pool().Auctions()
 
     for {
         select {
@@ -89,11 +89,46 @@ func main() {
             // process the auction, create a backrun
 
             // then send the bid
-            auction.SendBid([]string{
-                // hex encoded signed transactions
+            err := auction.SendBid(tx) // a signed types.Transaction
+
+            // or send a raw bid
+            err := auction.SendRawBid([]string{
+                // hex encoded bid
                 "0x...."
             })
+
+            // check for error in case the auction is already closed
         }
     }
+}
+```
+
+### Send bundles
+
+Send bundles to Merkle's high performance low latency builder.
+
+```golang
+package main
+
+import (
+    "github.com/merkle3/merkle-sdk-go/merkle"
+)
+
+func main() {
+    merkleSdk := merkle.New()
+
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+
+    builder := merkleSdk.Builder()
+
+    err := builder.SendBundle(&merkle.Bundle{
+        Transactions: []merkle.BundleTx{
+            merkle.Tx(tx).CanRevert(),
+            merkle.RawTx("0x.....")
+        },
+        TargetBlock: 300000,
+    })
+
+    // check for error
 }
 ```
