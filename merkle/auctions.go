@@ -1,11 +1,9 @@
 package merkle
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"net/http"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -37,6 +35,7 @@ type Auction struct {
 	FeeRecipient string
 	ClosesAt     time.Time
 	CreatedAt    time.Time
+	Connection   *websocket.Conn
 
 	Transaction *AuctionTransaction
 }
@@ -93,6 +92,8 @@ func Auctions() (chan *Auction, chan error) {
 					Data:  []byte(rawAuction.Transaction.Data),
 					Gas:   uint64(rawAuction.Transaction.Gas),
 				},
+				// keep track of the connection for bids
+				Connection: conn,
 			}
 
 			auctions <- &auction
@@ -144,14 +145,10 @@ func (a *Auction) SendRawBid(txs []string) error {
 		return fmt.Errorf("failed to marshal payload: %s", err)
 	}
 
-	res, err := http.Post("https://pool.usemerkle.com/relay", "application/json", bytes.NewBuffer(body))
+	_, err = a.Connection.Write(body)
 
 	if err != nil {
 		return fmt.Errorf("failed to send request: %s", err)
-	}
-
-	if res.StatusCode != 200 {
-		return fmt.Errorf("failed to send request: %s", res.Status)
 	}
 
 	return nil
