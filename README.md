@@ -103,7 +103,7 @@ func main() {
 }
 ```
 
-### Send bundles
+<!-- ### Send bundles
 
 Send bundles to Merkle's high performance low latency builder.
 
@@ -131,4 +131,4 @@ func main() {
 
     // check for error
 }
-```
+``` -->
