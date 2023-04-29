@@ -9,7 +9,7 @@ import (
 func main() {
 	merkleSdk := merkle.New()
 
-	auctions, err := merkleSdk.Pool().Auctions() // pass a chain id
+	auctions, err := merkleSdk.Pool().Auctions()
 
 	for {
 		select {

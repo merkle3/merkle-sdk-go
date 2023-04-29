@@ -9,7 +9,7 @@ import (
 func main() {
 	merkleSdk := merkle.New()
 
-	txs, err := merkleSdk.Transactions().Stream(1) // pass a chain id
+	txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet)
 
 	for {
 		select {
