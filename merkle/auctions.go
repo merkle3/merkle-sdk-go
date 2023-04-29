@@ -68,46 +68,64 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	auctions := make(chan *Auction)
 	errStream := make(chan error)
 
-	conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
+	connect := func(auctionChannel chan *Auction, errChannel chan error) {
+		conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
 
-	if err != nil {
+		if err != nil {
+			go func() {
+				errStream <- err
+			}()
+			return
+		}
+
 		go func() {
-			errStream <- err
+			for {
+				var rawAuction RawAuction
+				var rawJSON string
+				var rawJSONTotal = ""
+
+				// sometimes, the auctions are too big and split
+				// into multiple frames, we need to combine them
+				for {
+					err := websocket.Message.Receive(conn, &rawJSON)
+
+					if err != nil {
+						errStream <- fmt.Errorf("failed to receive message: %s", err)
+						return
+					}
+
+					rawJSONTotal += rawJSON
+
+					err = json.Unmarshal([]byte(rawJSONTotal), &rawAuction)
+
+					if err == nil {
+						break
+					}
+				}
+
+				auction := Auction{
+					Id:           rawAuction.Id,
+					FeeRecipient: rawAuction.FeeRecipient,
+					ClosesAt:     time.Unix(rawAuction.ClosesAtUnix, 0),
+					CreatedAt:    time.Unix(rawAuction.CreatedAt, 0),
+					Transaction: &AuctionTransaction{
+						Hash:  common.HexToHash(rawAuction.Transaction.Hash),
+						From:  common.HexToAddress(rawAuction.Transaction.From),
+						To:    common.HexToAddress(rawAuction.Transaction.To),
+						Value: new(big.Int),
+						Data:  []byte(rawAuction.Transaction.Data),
+						Gas:   uint64(rawAuction.Transaction.Gas),
+					},
+					// keep track of the connection for bids
+					Connection: conn,
+				}
+
+				auctions <- &auction
+			}
 		}()
-		return nil, errStream
 	}
 
-	go func() {
-		for {
-			var rawAuction RawAuction
-
-			err := websocket.JSON.Receive(conn, &rawAuction)
-
-			if err != nil {
-				errStream <- err
-				return
-			}
-
-			auction := Auction{
-				Id:           rawAuction.Id,
-				FeeRecipient: rawAuction.FeeRecipient,
-				ClosesAt:     time.Unix(rawAuction.ClosesAtUnix, 0),
-				CreatedAt:    time.Unix(rawAuction.CreatedAt, 0),
-				Transaction: &AuctionTransaction{
-					Hash:  common.HexToHash(rawAuction.Transaction.Hash),
-					From:  common.HexToAddress(rawAuction.Transaction.From),
-					To:    common.HexToAddress(rawAuction.Transaction.To),
-					Value: new(big.Int),
-					Data:  []byte(rawAuction.Transaction.Data),
-					Gas:   uint64(rawAuction.Transaction.Gas),
-				},
-				// keep track of the connection for bids
-				Connection: conn,
-			}
-
-			auctions <- &auction
-		}
-	}()
+	connect(auctions, errStream)
 
 	return auctions, errStream
 }
