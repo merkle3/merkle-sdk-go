@@ -68,7 +68,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	auctions := make(chan *Auction)
 	errStream := make(chan error)
 
-	conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "")
+	conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
 
 	if err != nil {
 		go func() {
