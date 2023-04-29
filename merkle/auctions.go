@@ -1,9 +1,11 @@
 package merkle
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"net/http"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -61,6 +63,74 @@ type AuctionOptions struct {
 }
 
 func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
+	// send to the pool
+	type PoolSubmission struct {
+		// an array of transactions
+		Transactions []string `json:"transactions"`
+
+		// the fee recipient
+		FeeRecipient string `json:"fee_recipient"`
+
+		// optionally, a source
+		Source string `json:"source"`
+	}
+
+	signer := types.LatestSignerForChainID(options.Transaction.ChainId())
+	txFrom, err := signer.Sender(options.Transaction)
+
+	if err != nil {
+		return fmt.Errorf("failed to get transaction sender: %s", err)
+	}
+
+	feeReceipient := txFrom.String()
+
+	if options.FeeRecipient.String() != (common.Address{}).String() {
+		feeReceipient = options.FeeRecipient.String()
+	}
+
+	txBytes, err := options.Transaction.MarshalBinary()
+
+	if err != nil {
+		return fmt.Errorf("failed to marshal transaction: %s", err)
+	}
+
+	submission := &PoolSubmission{
+		Transactions: []string{common.Bytes2Hex(txBytes)},
+		FeeRecipient: feeReceipient,
+		Source:       "public",
+	}
+
+	submissionBody, err := json.Marshal(submission)
+
+	if err != nil {
+		return fmt.Errorf("failed to marshal submission: %s", err)
+	}
+
+	client := &http.Client{}
+
+	// send to the pool
+	req, err := http.NewRequest("POST", "https://pool.usemerkle.com/transactions", bytes.NewBuffer(submissionBody))
+
+	if err != nil {
+		return fmt.Errorf("failed to create request to pool: %s", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if p.sdk.GetApiKey() != "" {
+		req.Header.Set("X-MBS-Key", p.sdk.GetApiKey())
+	}
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return fmt.Errorf("failed to send request to pool: %s", err)
+	}
+
+	if res.StatusCode > 400 {
+		return fmt.Errorf("failed to send request to pool: code=%s", res.Status)
+	}
+
 	return nil
 }
 
