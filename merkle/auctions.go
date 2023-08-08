@@ -36,6 +36,7 @@ type Auction struct {
 	Id           string
 	FeeRecipient string
 	ClosesAt     time.Time
+	ChainId      int64
 	CreatedAt    time.Time
 	Connection   *websocket.Conn
 
@@ -46,6 +47,7 @@ type RawAuction struct {
 	Id           string `json:"id"`
 	FeeRecipient string `json:"fee_recipient"`
 	ClosesAtUnix int64  `json:"closes_at_unix"`
+	ChainId      int64  `json:"chain_id"`
 	CreatedAt    int64  `json:"created_at_unix"`
 	Transaction  struct {
 		Data  string `json:"data"`
@@ -176,6 +178,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 				auction := Auction{
 					Id:           rawAuction.Id,
 					FeeRecipient: rawAuction.FeeRecipient,
+					ChainId:      rawAuction.ChainId,
 					ClosesAt:     time.Unix(rawAuction.ClosesAtUnix, 0),
 					CreatedAt:    time.Unix(rawAuction.CreatedAt, 0),
 					Transaction: &AuctionTransaction{
