@@ -1,12 +1,10 @@
 package merkle
 
 import (
-	"context"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/merkle3/merkle-sdk-go/proto"
-	brokerProto "github.com/merkle3/merkle-sdk-go/proto"
-	"google.golang.org/grpc"
+	"golang.org/x/net/websocket"
 )
 
 type TransactionStream struct {
@@ -23,7 +21,8 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 	errStream := make(chan error)
 	txs := make(chan *types.Transaction)
 
-	conn, err := grpc.Dial("txs.usemerkle.com:80", grpc.WithInsecure())
+	var address = "txs.merkle.io"
+	ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/1/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
 
 	if err != nil {
 		go func() {
@@ -31,31 +30,37 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 		}()
 		return nil, errStream
 	}
+	incomingMessages := make(chan []uint8)
 
-	broker := brokerProto.NewBrokerApiClient(conn)
-
-	stream, err := broker.StreamReceivedTransactions(context.Background(), &brokerProto.TxStreamRequest{
-		ApiKey:  t.sdk.GetApiKey(),
-		ChainId: int32(chainId),
-	})
+	// read incoming messages in a new goroutine
+	go func(_ws *websocket.Conn, _mgs chan []uint8) {
+		for {
+			var message []uint8
+			err := websocket.Message.Receive(ws, &message)
+			if err != nil {
+				fmt.Printf("Error::: %s\n", err.Error())
+				return
+			}
+			_mgs <- message
+		}
+	}(ws, incomingMessages)
 
 	go func() {
 		for {
-			txPacket, err := stream.Recv()
+			select {
+			case message := <-incomingMessages:
+				tx := types.Transaction{}
 
-			if err != nil {
-				errStream <- err
-				return
+				err := tx.UnmarshalBinary(message)
+
+				if err != nil {
+					errStream <- err
+					return
+				}
+
+				txs <- &tx
+
 			}
-
-			tx, err := proto.ToTransaction(txPacket)
-
-			if err != nil {
-				errStream <- err
-				return
-			}
-
-			txs <- tx
 		}
 	}()
 
