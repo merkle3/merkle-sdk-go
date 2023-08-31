@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/merkle3/merkle-sdk-go/merkle"
 )
 
 func main() {
 	merkleSdk := merkle.New()
+
+	merkleSdk.SetApiKey(os.Getenv("MERKLE_API_KEY"))
 
 	txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet)
 
