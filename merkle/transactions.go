@@ -22,7 +22,7 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 	txs := make(chan *types.Transaction)
 
 	var address = "txs.merkle.io"
-	ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/1/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
+	ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
 
 	if err != nil {
 		go func() {
