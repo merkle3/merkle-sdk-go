@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/merkle3/merkle-sdk-go/merkle"
 )
 
 func main() {
+	godotenv.Load()
+
 	merkleSdk := merkle.New()
 
 	merkleSdk.SetApiKey(os.Getenv("MERKLE_API_KEY"))

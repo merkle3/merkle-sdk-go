@@ -2,6 +2,7 @@ package merkle
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"golang.org/x/net/websocket"
@@ -19,31 +20,48 @@ func NewTransactionStream(sdk *MerkleSDK) *TransactionStream {
 
 func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transaction, chan error) {
 	errStream := make(chan error)
-	txs := make(chan *types.Transaction)
+	txStream := make(chan *types.Transaction)
 
-	var address = "txs.merkle.io"
-	ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
-
-	if err != nil {
-		go func() {
-			errStream <- err
-		}()
-		return nil, errStream
-	}
 	incomingMessages := make(chan []uint8)
 
-	// read incoming messages in a new goroutine
-	go func(_ws *websocket.Conn, _mgs chan []uint8) {
+	if t.sdk.ApiKey == "" {
+		go func() {
+			errStream <- fmt.Errorf("API key is not set")
+		}()
+		return txStream, errStream
+	}
+
+	go func() {
 		for {
-			var message []uint8
-			err := websocket.Message.Receive(ws, &message)
+			fmt.Printf("connecting...")
+
+			var address = "txs.merkle.io"
+			ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
+
 			if err != nil {
-				fmt.Printf("Error::: %s\n", err.Error())
+				go func() {
+					errStream <- err
+				}()
 				return
 			}
-			_mgs <- message
+
+			for {
+				var message []uint8
+
+				// set a deadline of 5 seconds to receive the next tx,
+				// should be plenty of time
+				ws.SetReadDeadline(time.Now().Add(5 * time.Second))
+				err := websocket.Message.Receive(ws, &message)
+				if err != nil {
+					// if we couldn't read the message, try to reconnect
+					break
+				}
+				incomingMessages <- message
+			}
+
+			time.Sleep(1 * time.Second)
 		}
-	}(ws, incomingMessages)
+	}()
 
 	go func() {
 		for {
@@ -54,15 +72,14 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 				err := tx.UnmarshalBinary(message)
 
 				if err != nil {
-					errStream <- err
-					return
+					// if we couldn't parse the transaction, skip it
+					continue
 				}
 
-				txs <- &tx
-
+				txStream <- &tx
 			}
 		}
 	}()
 
-	return txs, errStream
+	return txStream, errStream
 }
