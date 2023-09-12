@@ -111,7 +111,7 @@ func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
 	client := &http.Client{}
 
 	// send to the pool
-	req, err := http.NewRequest("POST", "https://pool.usemerkle.com/transactions", bytes.NewBuffer(submissionBody))
+	req, err := http.NewRequest("POST", "https://pool.merkle.io/transactions", bytes.NewBuffer(submissionBody))
 
 	if err != nil {
 		return fmt.Errorf("failed to create request to pool: %s", err)
@@ -141,7 +141,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	errStream := make(chan error)
 
 	connect := func(auctionChannel chan *Auction, errChannel chan error) {
-		conn, err := websocket.Dial("wss://pool.usemerkle.com/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
+		conn, err := websocket.Dial("wss://pool.merkle.io/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
 
 		if err != nil {
 			go func() {
@@ -227,7 +227,7 @@ type BundleParams struct {
 }
 
 func (a *Auction) SendRawBid(txs []string) error {
-	// send a request to https://pool.usemerkle.com/relay
+	// send a request to https://pool.merkle.io/relay
 	payload := &RelaySubmitRequest{
 		Method: "eth_sendBundle",
 		Params: []BundleParams{

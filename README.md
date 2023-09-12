@@ -16,7 +16,7 @@ go get github.com/merkle3/merkle-sdk-go
 
 ## Authentication
 
-Get an API key from [Merkle Blockchain Services (MBS)](https://mbs.usemerkle.com). It is free.
+Get an API key from [Merkle Blockchain Services (MBS)](https://mbs.merkle.io).
 
 ```golang
 package main
@@ -28,7 +28,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
 }
 ```
 
@@ -36,7 +36,7 @@ func main() {
 
 ### Stream transactions
 
-Access Merkle's private stream of transactions on Ethereum. [Learn more](https://docs.usemerkle.com/transaction-stream/what-is-merkle-transaction-stream)
+Access Merkle's private stream of transactions on Ethereum. [Learn more](https://docs.merkle.io/transaction-network/what-is-transaction-network)
 
 ```golang
 package main
@@ -48,7 +48,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
 
     txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id
 
@@ -67,7 +67,7 @@ func main() {
 
 ### Stream auctions
 
-Stream auctions from the Merkle Private Pool. [Learn more](https://docs.usemerkle.com/private-pool/what-is-merkle-private-pool).
+Stream auctions from the Merkle Private Pool. [Learn more](https://docs.merkle.io/private-pool/what-is-private-mempool).
 
 ```golang
 package main
@@ -79,7 +79,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.merkle.io
 
     auctions, err := merkleSdk.Pool().Auctions()
 
@@ -119,7 +119,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.usemerkle.com
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.merkle.io
 
     builder := merkleSdk.Builder()
 

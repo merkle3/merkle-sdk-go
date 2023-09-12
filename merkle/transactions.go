@@ -33,8 +33,6 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 
 	go func() {
 		for {
-			fmt.Printf("connecting...")
-
 			var address = "txs.merkle.io"
 			ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/%s", address, t.sdk.ApiKey), "", fmt.Sprintf("http://%s/", address))
 
