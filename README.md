@@ -50,7 +50,7 @@ func main() {
 
     merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
 
-    txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id, e.g. merkle.EthereumMainnet or merkle.PolygonMainnet
+    txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id, e.g. merkle.EthereumMainnet, merkle.PolygonMainnet or merkle.BnbMainnet
 
     for {
         select {
