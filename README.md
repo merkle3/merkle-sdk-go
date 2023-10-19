@@ -36,7 +36,7 @@ func main() {
 
 ### Stream transactions
 
-Access Merkle's private stream of transactions on Ethereum. [Learn more](https://docs.merkle.io/transaction-network/what-is-transaction-network)
+Access Merkle's private stream of transactions on Ethereum & Polygon. [Learn more](https://docs.merkle.io/transaction-network/what-is-transaction-network)
 
 ```golang
 package main
@@ -50,7 +50,7 @@ func main() {
 
     merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
 
-    txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id
+    txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id, e.g. merkle.EthereumMainnet or merkle.PolygonMainnet
 
     for {
         select {
