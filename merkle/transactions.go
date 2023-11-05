@@ -1,7 +1,10 @@
 package merkle
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -80,4 +83,54 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 	}()
 
 	return txStream, errStream
+}
+
+type MerkleTrace struct {
+	Hash        string        `json:"hash"`
+	FirstSeenAt time.Time     `json:"firstSeenAt"`
+	ChainId     MerkleChainId `json:"chainId"`
+	Trace       []Observation `json:"trace"`
+	TxData      string        `json:"txData"`
+}
+
+type Observation struct {
+	Time   time.Time
+	Origin string
+}
+
+// trace a transaction
+func (t *TransactionStream) Trace(hash string) (*MerkleTrace, error) {
+	// url is https://txs.merkle.io/trace/<hash>
+	res, err := http.Get(fmt.Sprintf("https://txs.merkle.io/trace/%s", hash))
+
+	if err != nil {
+		return nil, fmt.Errorf("error fetching trace: %s", err)
+	}
+
+	// check if we got a 404
+	if res.StatusCode == 404 {
+		return nil, nil
+	}
+
+	// check if we got a 200
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("error fetching trace: %s", res.Status)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading trace: %s", err)
+	}
+
+	// decode the response
+	var trace MerkleTrace
+
+	err = json.Unmarshal(body, &trace)
+
+	if err != nil {
+		return nil, fmt.Errorf("error decoding trace: %s", err)
+	}
+
+	return &trace, nil
 }
