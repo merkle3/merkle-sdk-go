@@ -107,7 +107,7 @@ func main() {
 
 ### Send transaction to the private mempool
 
-Send Ethereum, BSC and Polygon transactions to the private mempool to get MEV protection and recovery. [Learn more](https://docs.merkle.io/private-mempool/what-is-private-mempool)
+Send Ethereum, BSC and Polygon transactions to the private mempool to get MEV protection and recovery. [Learn more](https://docs.merkle.io/private-pool/what-is-private-mempool)
 
 ```golang
 package main
