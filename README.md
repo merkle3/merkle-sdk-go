@@ -105,6 +105,32 @@ func main() {
 }
 ```
 
+### Send transaction to the private mempool
+
+Send Ethereum, BSC and Polygon transactions to the private mempool to get MEV protection and recovery. [Learn more](https://docs.merkle.io/private-mempool/what-is-private-mempool)
+
+```golang
+package main
+
+import (
+    "github.com/merkle3/merkle-sdk-go/merkle"
+)
+
+func main() {
+    merkleSdk := merkle.New()
+
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
+
+    err := merkleSdk.Pool().Send(&merkle.NewTransactionOptions{
+        tx: nil, // a types.Transaction from go-ethereum
+    })
+
+    if err != nil {
+        fmt.Printf("error: %v\n", err)
+    }
+}
+```
+
 ### Transaction tracing
 
 Know exactly when and where a transaction was broadcasted. [Learn more](https://docs.merkle.io/transaction-network/tracing)

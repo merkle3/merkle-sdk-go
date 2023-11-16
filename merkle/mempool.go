@@ -59,22 +59,49 @@ type RawAuction struct {
 	} `json:"transaction"`
 }
 
-type AuctionOptions struct {
+type NewTransactionOptions struct {
 	Transaction  *types.Transaction
 	FeeRecipient common.Address
+
+	// optionally, a source
+	Source string
+
+	// prevent reverts
+	PreventRevert bool
+
+	// hints
+	Hints []string
+
+	// privacy profile
+	PrivacyProfile string
 }
 
-func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
+func (p *PrivatePool) Send(options *NewTransactionOptions) error {
 	// send to the pool
 	type PoolSubmission struct {
-		// an array of transactions
+		// An array of transactions
 		Transactions []string `json:"transactions"`
 
-		// the fee recipient
+		// The fee recipient
 		FeeRecipient string `json:"fee_recipient"`
 
-		// optionally, a source
+		// Optional, a source tag
 		Source string `json:"source"`
+
+		// Optional, a privacy profile
+		Privacy string `json:"privacy"`
+
+		// Optional, a list of hints, overrides the privacy profile
+		Hints []string `json:"hints"`
+
+		// Optional, a list of allowed bundles for this transaction
+		BundleTypes []string `json:"bundle_types"`
+
+		// Optional, a list of release targets
+		ReleaseTargets []string `json:"release_targets"`
+
+		// Optional, prevent reverts
+		PreventReverts bool `json:"prevent_reverts"`
 	}
 
 	signer := types.LatestSignerForChainID(options.Transaction.ChainId())
@@ -84,10 +111,10 @@ func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
 		return fmt.Errorf("failed to get transaction sender: %s", err)
 	}
 
-	feeReceipient := txFrom.String()
+	feeRecipient := txFrom.String()
 
 	if options.FeeRecipient.String() != (common.Address{}).String() {
-		feeReceipient = options.FeeRecipient.String()
+		feeRecipient = options.FeeRecipient.String()
 	}
 
 	txBytes, err := options.Transaction.MarshalBinary()
@@ -97,9 +124,12 @@ func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
 	}
 
 	submission := &PoolSubmission{
-		Transactions: []string{common.Bytes2Hex(txBytes)},
-		FeeRecipient: feeReceipient,
-		Source:       "public",
+		Transactions:   []string{common.Bytes2Hex(txBytes)},
+		FeeRecipient:   feeRecipient,
+		Source:         options.Source,
+		Privacy:        options.PrivacyProfile,
+		Hints:          options.Hints,
+		PreventReverts: options.PreventRevert,
 	}
 
 	submissionBody, err := json.Marshal(submission)
@@ -111,7 +141,7 @@ func (p *PrivatePool) CreateAuction(options *AuctionOptions) error {
 	client := &http.Client{}
 
 	// send to the pool
-	req, err := http.NewRequest("POST", "https://pool.merkle.io/transactions", bytes.NewBuffer(submissionBody))
+	req, err := http.NewRequest("POST", "https://mempool.merkle.io/transactions", bytes.NewBuffer(submissionBody))
 
 	if err != nil {
 		return fmt.Errorf("failed to create request to pool: %s", err)
@@ -141,7 +171,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	errStream := make(chan error)
 
 	connect := func(auctionChannel chan *Auction, errChannel chan error) {
-		conn, err := websocket.Dial("wss://pool.merkle.io/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
+		conn, err := websocket.Dial("wss://mempool.merkle.io/stream/auctions?apiKey="+p.sdk.GetApiKey(), "", "http://localhost/")
 
 		if err != nil {
 			go func() {
