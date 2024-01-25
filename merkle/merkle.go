@@ -6,6 +6,8 @@ type MerkleSDK struct {
 	transactions *TransactionStream
 	pool         *PrivatePool
 	builder      *BuilderSDK
+	simulation   *SimulationAPI
+	overwatch    *OverwatchAPI
 }
 
 func New() *MerkleSDK {
@@ -40,4 +42,18 @@ func (m *MerkleSDK) Transactions() *TransactionStream {
 		m.transactions = NewTransactionStream(m)
 	}
 	return m.transactions
+}
+
+func (m *MerkleSDK) Simulation() *SimulationAPI {
+	if m.simulation == nil {
+		m.simulation = NewSimulationAPI(m)
+	}
+	return m.simulation
+}
+
+func (m *MerkleSDK) Overwatch() *OverwatchAPI {
+	if m.overwatch == nil {
+		m.overwatch = NewOverwatchAPI(m)
+	}
+	return m.overwatch
 }

@@ -43,6 +43,11 @@ type Auction struct {
 	Transaction *AuctionTransaction
 }
 
+type RawRpcResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Result  string `json:"result"`
+}
+
 type RawAuction struct {
 	Id           string `json:"id"`
 	FeeRecipient string `json:"fee_recipient"`
@@ -233,11 +238,11 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	return auctions, errStream
 }
 
-func (a *Auction) SendBid(tx types.Transaction) error {
+func (a *Auction) SendBid(tx types.Transaction) (string, error) {
 	bin, err := tx.MarshalBinary()
 
 	if err != nil {
-		return fmt.Errorf("failed to marshal transaction: %s", err)
+		return "", fmt.Errorf("failed to marshal transaction: %s", err)
 	}
 
 	hex := common.Bytes2Hex(bin)
@@ -256,7 +261,7 @@ type BundleParams struct {
 	BlockNumber string   `json:"blockNumber"`
 }
 
-func (a *Auction) SendRawBid(txs []string) error {
+func (a *Auction) SendRawBid(txs []string) (string, error) {
 	// send a request to https://pool.merkle.io/relay
 	payload := &RelaySubmitRequest{
 		Method: "eth_sendBundle",
@@ -272,14 +277,35 @@ func (a *Auction) SendRawBid(txs []string) error {
 	body, err := json.Marshal(payload)
 
 	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %s", err)
+		return "", fmt.Errorf("failed to marshal payload: %s", err)
 	}
 
-	_, err = a.Connection.Write(body)
+	res, err := http.Post("https://pool.merkle.io/relay", "application/json", bytes.NewBuffer(body))
 
 	if err != nil {
-		return fmt.Errorf("failed to send request: %s", err)
+		return "", fmt.Errorf("failed to send request: %s", err)
 	}
 
-	return nil
+	if res.StatusCode > 400 {
+		return "", fmt.Errorf("failed to send request: code=%s", res.Status)
+	}
+
+	defer res.Body.Close()
+
+	// decode the response
+	var resBody map[string]interface{}
+
+	err = json.NewDecoder(res.Body).Decode(&resBody)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal response: %s", err)
+	}
+
+	bidId, ok := resBody["result"].(string)
+
+	if !ok {
+		return "", fmt.Errorf("failed to get bid id")
+	}
+
+	return bidId, nil
 }
