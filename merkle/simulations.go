@@ -15,17 +15,30 @@ func NewSimulationAPI(sdk *MerkleSDK) *SimulationAPI {
 }
 
 type BundleCall struct {
-	From  string `json:"from,omitempty"`
-	To    string `json:"to,omitempty"`
-	Value string `json:"value,omitempty"`
-	Nonce int64  `json:"nonce,omitempty"`
-	Data  string `json:"data,omitempty"`
+	From      string                   `json:"from,omitempty"`
+	To        string                   `json:"to,omitempty"`
+	Value     string                   `json:"value,omitempty"`
+	Nonce     int64                    `json:"nonce,omitempty"`
+	Data      string                   `json:"data,omitempty"`
+	Overrides *StateOverrideParameters `json:"overrides,omitempty"`
 }
 
 type SimulationBundle struct {
-	ChainId     int64        `json:"chainId"`
-	Calls       []BundleCall `json:"calls"`
-	BlockNumber *int         `json:"blockNumber,omitempty"`
+	ChainId     int64                    `json:"chainId"`
+	Calls       []BundleCall             `json:"calls"`
+	BlockNumber *int                     `json:"blockNumber,omitempty"`
+	Overrides   *StateOverrideParameters `json:"overrides,omitempty"`
+}
+
+type StateOverrideParameters struct {
+	Accounts      map[string]*AccountParameters `json:"accounts,omitempty"`
+	ContractCodes map[string]string             `json:"contractCodes,omitempty"`
+	Storage       map[string]map[string]string  `json:"storage,omitempty"`
+}
+
+type AccountParameters struct {
+	Nonce   *int `json:"nonce,omitempty"`
+	Balance *int `json:"balance,omitempty"`
 }
 
 type SimulationCallResult struct {
