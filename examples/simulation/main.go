@@ -15,8 +15,8 @@ func main() {
 	block := 19078685
 
 	simulationResult, err := merkleSdk.Simulation().SimulateBundle(&merkle.SimulationBundle{
-		ChainId:     1,      // Ethereum Mainnet
-		BlockNumber: &block, // nil for latest block
+		ChainId:     merkle.EthereumMainnet, // Ethereum Mainnet
+		BlockNumber: &block,                 // nil for latest block
 		Calls: []merkle.BundleCall{
 			{
 				From: "0x3b42a0ed9050A79d8F35B07021272B3ef073266A",

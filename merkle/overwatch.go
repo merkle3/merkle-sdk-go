@@ -19,7 +19,7 @@ func (o *OverwatchAPI) WatchAddress(address string) error {
 		Address: address,
 	}
 
-	err := MakePost("https://mbs-api.merkle.io/v1/overwatch/add_address", o.sdk.ApiKey, req, nil)
+	err := MakePost("https://mbs-api.merkle.io/v1/overwatch/addresses", o.sdk.ApiKey, req, nil)
 
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (o *OverwatchAPI) UnwatchAddress(address string) error {
 }
 
 // declare hash
-func (o *OverwatchAPI) Declare(hash string, chainId int64) error {
+func (o *OverwatchAPI) Declare(chainId MerkleChainId, hash string) error {
 	err := MakePost("https://mbs-api.merkle.io/v1/overwatch/declare", o.sdk.ApiKey, map[string]interface{}{
 		"hash":    hash,
 		"chainId": chainId,

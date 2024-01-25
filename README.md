@@ -184,7 +184,7 @@ func main() {
 	block := 19078685
 
 	simulationResult, err := merkleSdk.Simulation().SimulateBundle(&merkle.SimulationBundle{
-		ChainId:     1,      // Ethereum Mainnet
+		ChainId:     merkle.EthereumMainnet,      // Ethereum Mainnet
 		BlockNumber: &block, // nil for latest block, or a block number
 		Calls: []merkle.BundleCall{
 			{
@@ -200,5 +200,47 @@ func main() {
 	}
 
 	fmt.Printf("simulation result: %+v\n", simulationResult)
+}
+```
+
+## Overwatch
+
+### Monitor an address
+
+Overwatch allows you to monitor addresses, declare hashes and unmonitor addresses:
+
+```golang
+package main
+
+import (
+	"os"
+
+	"github.com/merkle3/merkle-sdk-go/merkle"
+)
+
+func main() {
+	merkleSdk := merkle.New()
+
+	merkleSdk.SetApiKey("sk_mbs_.....") // get one at https://mbs.merkle.io
+
+	err := merkleSdk.Overwatch().WatchAddress("0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
+
+	if err != nil {
+		panic(err)
+	}
+
+	// declare hashes on Ethereum mainnet
+	err = merkleSdk.Overwatch().Declare(merkle.EthereumMainnet, "0x....")
+
+	if err != nil {
+		panic(err)
+	}
+
+	// unwatch address on Ethereum mainnet
+	err = merkleSdk.Overwatch().UnwatchAddress("0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
+
+	if err != nil {
+		panic(err)
+	}
 }
 ```

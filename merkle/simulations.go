@@ -24,7 +24,7 @@ type BundleCall struct {
 }
 
 type SimulationBundle struct {
-	ChainId     int64                    `json:"chainId"`
+	ChainId     MerkleChainId            `json:"chainId"`
 	Calls       []BundleCall             `json:"calls"`
 	BlockNumber *int                     `json:"blockNumber,omitempty"`
 	Overrides   *StateOverrideParameters `json:"overrides,omitempty"`

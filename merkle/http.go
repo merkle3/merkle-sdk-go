@@ -15,7 +15,13 @@ func MakePost(url string, apiKey string, body interface{}, resp interface{}) err
 		return fmt.Errorf("error marshalling bundle: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
+	if body == nil {
+		bodyBytes = []byte{}
+	}
+
+	buffer := bytes.NewBuffer(bodyBytes)
+
+	req, err := http.NewRequest("POST", url, buffer)
 
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
@@ -42,7 +48,7 @@ func MakePost(url string, apiKey string, body interface{}, resp interface{}) err
 	}
 
 	if res.StatusCode > 400 {
-		return fmt.Errorf("error sending request: code=%s, body=%s", res.Status, bodyRead)
+		return fmt.Errorf("error sending request: url=%s code=%s, body=%s", url, res.Status, bodyRead)
 	}
 
 	if resp == nil {
@@ -65,7 +71,13 @@ func MakeDel(url string, apiKey string, body interface{}, resp interface{}) erro
 		return fmt.Errorf("error marshalling bundle: %v", err)
 	}
 
-	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(bodyBytes))
+	if body == nil {
+		bodyBytes = []byte{}
+	}
+
+	buffer := bytes.NewBuffer(bodyBytes)
+
+	req, err := http.NewRequest("DELETE", url, buffer)
 
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
@@ -82,15 +94,24 @@ func MakeDel(url string, apiKey string, body interface{}, resp interface{}) erro
 		return fmt.Errorf("error sending request: %v", err)
 	}
 
+	// read the whole body
+	defer res.Body.Close()
+
+	bodyRead, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		return fmt.Errorf("error reading response: %v", err)
+	}
+
 	if res.StatusCode > 400 {
-		return fmt.Errorf("error sending request: code=%s", res.Status)
+		return fmt.Errorf("error sending request: url=%s, code=%s, body=%s", url, res.Status, bodyRead)
 	}
 
 	if resp == nil {
 		return nil
 	}
 
-	err = json.NewDecoder(res.Body).Decode(&resp)
+	err = json.Unmarshal(bodyRead, &resp)
 
 	if err != nil {
 		return fmt.Errorf("error decoding response: %v", err)
