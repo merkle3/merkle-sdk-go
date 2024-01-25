@@ -1,11 +1,7 @@
 package merkle
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"math/big"
-	"net/http"
 )
 
 type SimulationAPI struct {
@@ -19,21 +15,22 @@ func NewSimulationAPI(sdk *MerkleSDK) *SimulationAPI {
 }
 
 type BundleCall struct {
-	From  string `json:"from"`
-	To    string `json:"to"`
-	Value string `json:"value"`
-	Data  string `json:"data"`
+	From  string `json:"from,omitempty"`
+	To    string `json:"to,omitempty"`
+	Value string `json:"value,omitempty"`
+	Nonce int64  `json:"nonce,omitempty"`
+	Data  string `json:"data,omitempty"`
 }
 
-type Bundle struct {
-	ChainId     int64        `json:"chain_id"`
+type SimulationBundle struct {
+	ChainId     int64        `json:"chainId"`
 	Calls       []BundleCall `json:"calls"`
-	BlockNumber int64        `json:"block_number"`
+	BlockNumber *int         `json:"blockNumber,omitempty"`
 }
 
 type SimulationCallResult struct {
 	Logs              []Log              `json:"logs"`
-	GasUsed           *big.Int           `json:"gasUsed"`
+	GasUsed           *BigInt            `json:"gasUsed"`
 	Result            string             `json:"result"`
 	AddressCreated    *string            `json:"addressCreated,omitempty"`
 	Status            int                `json:"status"`
@@ -53,53 +50,30 @@ type ErrorDetails struct {
 }
 
 type InternalTransfer struct {
-	From   string   `json:"from"`
-	To     string   `json:"to"`
-	Amount *big.Int `json:"amount"`
+	From   string  `json:"from"`
+	To     string  `json:"to"`
+	Amount *BigInt `json:"amount"`
 }
 
 type SimulationResult struct {
 	ChainId     int                    `json:"chainId"`
-	BlockNumber *big.Int               `json:"blockNumber"`
+	BlockNumber *BigInt                `json:"blockNumber"`
 	ProcessTime int                    `json:"processTime"`
 	Calls       []SimulationCallResult `json:"calls"`
 }
 
-func (s *SimulationAPI) SimulateBundle(bundle Bundle) (*SimulationResult, error) {
+func (s *SimulationAPI) SimulateBundle(bundle *SimulationBundle) (*SimulationResult, error) {
 	var result SimulationResult
 
-	// call the mbs-api.merkle.io/v1/simulate endpoint
-	bodyBytes, err := json.Marshal(bundle)
-
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling bundle: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", "https://mbs-api.merkle.io/v1/simulate", bytes.NewBuffer(bodyBytes))
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Token "+s.sdk.GetApiKey())
-
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-
-	client := &http.Client{}
-
-	res, err := client.Do(req)
+	err := MakePost(
+		"https://mbs-api.merkle.io/v1/simulate",
+		s.sdk.GetApiKey(),
+		bundle,
+		&result,
+	)
 
 	if err != nil {
 		return nil, fmt.Errorf("error sending request: %v", err)
-	}
-
-	if res.StatusCode > 400 {
-		return nil, fmt.Errorf("error sending request: code=%s", res.Status)
-	}
-
-	err = json.NewDecoder(res.Body).Decode(&result)
-
-	if err != nil {
-		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
 	return &result, nil

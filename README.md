@@ -32,7 +32,9 @@ func main() {
 }
 ```
 
-## Features
+# Features
+
+## Transaction Network
 
 ### Stream transactions
 
@@ -48,7 +50,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at https://mbs.merkle.io
 
     txs, err := merkleSdk.Transactions().Stream(merkle.EthereumMainnet) // pass a chain id, e.g. merkle.EthereumMainnet, merkle.PolygonMainnet or merkle.BnbMainnet
 
@@ -65,6 +67,36 @@ func main() {
 }
 ```
 
+### Transaction tracing
+
+Know exactly when and where a transaction was broadcasted. [Learn more](https://docs.merkle.io/transaction-network/tracing)
+
+```golang
+package main
+
+import (
+    "github.com/merkle3/merkle-sdk-go/merkle"
+)
+
+func main() {
+    merkleSdk := merkle.New()
+
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at https://mbs.merkle.io
+
+    trace, err := merkleSdk.Transactions().Trace("0x....") // a transaction hash
+
+    // check for error
+    if err != nil {
+        fmt.Printf("error: %v\n", err)
+        return
+    }
+
+    fmt.Printf("first seen at: %v\n", trace.FirstSeenAt.String())
+}
+```
+
+## Private Mempool
+
 ### Stream auctions
 
 Stream auctions from the Merkle Private Pool. [Learn more](https://docs.merkle.io/private-pool/what-is-private-mempool).
@@ -79,7 +111,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.merkle.io
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at https://mbs.merkle.io
 
     auctions, err := merkleSdk.Pool().Auctions()
 
@@ -119,7 +151,7 @@ import (
 func main() {
     merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.https://mbs.merkle.io
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at https://mbs.merkle.io
 
     err := merkleSdk.Pool().Send(&merkle.NewTransactionOptions{
         tx: nil, // a types.Transaction from go-ethereum
@@ -131,9 +163,11 @@ func main() {
 }
 ```
 
-### Transaction tracing
+## Simulations
 
-Know exactly when and where a transaction was broadcasted. [Learn more](https://docs.merkle.io/transaction-network/tracing)
+### Simulate a bundle of transactions
+
+The simulation API allows you to simulate a bundle of transactions on Ethereum, BSC and Polygon. [Learn more](https://docs.merkle.io/simulations/what-are-simulations)
 
 ```golang
 package main
@@ -143,48 +177,28 @@ import (
 )
 
 func main() {
-    merkleSdk := merkle.New()
+   merkleSdk := merkle.New()
 
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.merkle.io
+	merkleSdk.SetApiKey("sk_mbs_........") // get one at https://mbs.merkle.io
 
-    trace, err := merkleSdk.Transactions().Trace("0x....") // a transaction hash
+	block := 19078685
 
-    // check for error
-    if err != nil {
-        fmt.Printf("error: %v\n", err)
-        return
-    }
+	simulationResult, err := merkleSdk.Simulation().SimulateBundle(&merkle.SimulationBundle{
+		ChainId:     1,      // Ethereum Mainnet
+		BlockNumber: &block, // nil for latest block, or a block number
+		Calls: []merkle.BundleCall{
+			{
+				From: "0x3b42a0ed9050A79d8F35B07021272B3ef073266A",
+				To:   "0x881D40237659C251811CEC9c364ef91dC08D300C",
+				Data: "0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000b2617246d0c6c0087f18703d576831899ca94f0100000000000000000000000000000000000000000000152d02c7e14af680000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000b2617246d0c6c0087f18703d576831899ca94f01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000152d02c7e14af68000000000000000000000000000000000000000000000000000001464a6568a138eed0000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000002f063f978aab00000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000b2617246d0c6c0087f18703d576831899ca94f0100000000000000000000000000000000000000000000152d02c7e14af68000000000000000000000000000000000000000000000000000001492bbd24caad01b0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b36ec83d844c0579ec2493f10b2087e96bb65460ab4991fe00000000000000000000000000000000000000000000000000a0",
+			},
+		},
+	})
 
-    fmt.Printf("first seen at: %v\n", trace.FirstSeenAt.String())
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+
+	fmt.Printf("simulation result: %+v\n", simulationResult)
 }
 ```
-
-<!-- ### Send bundles
-
-Send bundles to Merkle's high performance low latency builder.
-
-```golang
-package main
-
-import (
-    "github.com/merkle3/merkle-sdk-go/merkle"
-)
-
-func main() {
-    merkleSdk := merkle.New()
-
-    merkleSdk.SetApiKey("sk_mbs_......") // get one at mbs.merkle.io
-
-    builder := merkleSdk.Builder()
-
-    err := builder.SendBundle(&merkle.Bundle{
-        Transactions: []merkle.BundleTx{
-            merkle.Tx(tx).CanRevert(),
-            merkle.RawTx("0x.....")
-        },
-        TargetBlock: 300000,
-    })
-
-    // check for error
-}
-``` -->
