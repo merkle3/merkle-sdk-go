@@ -20,6 +20,7 @@ type BundleCall struct {
 	Value     string                   `json:"value,omitempty"`
 	Nonce     int64                    `json:"nonce,omitempty"`
 	Data      string                   `json:"data,omitempty"`
+	GasLimit  int64                    `json:"gasLimit,omitempty"`
 	Overrides *StateOverrideParameters `json:"overrides,omitempty"`
 }
 
