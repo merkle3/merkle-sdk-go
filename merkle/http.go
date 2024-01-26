@@ -2,13 +2,14 @@ package merkle
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-func MakePost(url string, apiKey string, body interface{}, resp interface{}) error {
+func MakePost(ctx context.Context, url string, apiKey string, body interface{}, resp interface{}) error {
 	bodyBytes, err := json.Marshal(body)
 
 	if err != nil {
@@ -21,7 +22,7 @@ func MakePost(url string, apiKey string, body interface{}, resp interface{}) err
 
 	buffer := bytes.NewBuffer(bodyBytes)
 
-	req, err := http.NewRequest("POST", url, buffer)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, buffer)
 
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
@@ -64,7 +65,7 @@ func MakePost(url string, apiKey string, body interface{}, resp interface{}) err
 	return nil
 }
 
-func MakeDel(url string, apiKey string, body interface{}, resp interface{}) error {
+func MakeDel(ctx context.Context, url string, apiKey string, body interface{}, resp interface{}) error {
 	bodyBytes, err := json.Marshal(body)
 
 	if err != nil {
@@ -77,7 +78,7 @@ func MakeDel(url string, apiKey string, body interface{}, resp interface{}) erro
 
 	buffer := bytes.NewBuffer(bodyBytes)
 
-	req, err := http.NewRequest("DELETE", url, buffer)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, buffer)
 
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
@@ -120,8 +121,8 @@ func MakeDel(url string, apiKey string, body interface{}, resp interface{}) erro
 	return nil
 }
 
-func MakeGet(url string, apiKey string, resp interface{}) error {
-	req, err := http.NewRequest("GET", url, nil)
+func MakeGet(ctx context.Context, url string, apiKey string, resp interface{}) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)

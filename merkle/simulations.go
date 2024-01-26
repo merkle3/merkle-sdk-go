@@ -1,6 +1,7 @@
 package merkle
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -76,10 +77,11 @@ type SimulationResult struct {
 	Calls       []SimulationCallResult `json:"calls"`
 }
 
-func (s *SimulationAPI) SimulateBundle(bundle *SimulationBundle) (*SimulationResult, error) {
+func (s *SimulationAPI) SimulateBundle(ctx context.Context, bundle *SimulationBundle) (*SimulationResult, error) {
 	var result SimulationResult
 
 	err := MakePost(
+		ctx,
 		"https://mbs-api.merkle.io/v1/simulate",
 		s.sdk.GetApiKey(),
 		bundle,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -14,7 +15,7 @@ func main() {
 
 	block := 19078685
 
-	simulationResult, err := merkleSdk.Simulation().SimulateBundle(&merkle.SimulationBundle{
+	simulationResult, err := merkleSdk.Simulation().SimulateBundle(context.TODO(), &merkle.SimulationBundle{
 		ChainId:     merkle.EthereumMainnet, // Ethereum Mainnet
 		BlockNumber: &block,                 // nil for latest block
 		Calls: []merkle.BundleCall{

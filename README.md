@@ -183,7 +183,7 @@ func main() {
 
 	block := 19078685
 
-	simulationResult, err := merkleSdk.Simulation().SimulateBundle(&merkle.SimulationBundle{
+	simulationResult, err := merkleSdk.Simulation().SimulateBundle(context.TODO(), &merkle.SimulationBundle{
 		ChainId:     merkle.EthereumMainnet,      // Ethereum Mainnet
 		BlockNumber: &block, // nil for latest block, or a block number
 		Calls: []merkle.BundleCall{
@@ -223,21 +223,21 @@ func main() {
 
 	merkleSdk.SetApiKey("sk_mbs_.....") // get one at https://mbs.merkle.io
 
-	err := merkleSdk.Overwatch().WatchAddress("0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
+	err := merkleSdk.Overwatch().WatchAddress(context.TODO(), "0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
 
 	if err != nil {
 		panic(err)
 	}
 
 	// declare hashes on Ethereum mainnet
-	err = merkleSdk.Overwatch().Declare(merkle.EthereumMainnet, "0x....")
+	err = merkleSdk.Overwatch().Declare(context.TODO(), merkle.EthereumMainnet, "0x....")
 
 	if err != nil {
 		panic(err)
 	}
 
 	// unwatch address on Ethereum mainnet
-	err = merkleSdk.Overwatch().UnwatchAddress("0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
+	err = merkleSdk.Overwatch().UnwatchAddress(context.TODO(), "0x3b42a0ed9050A79d8F35B07021272B3ef073266A")
 
 	if err != nil {
 		panic(err)

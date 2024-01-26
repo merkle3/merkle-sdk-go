@@ -1,5 +1,7 @@
 package merkle
 
+import "context"
+
 type OverwatchAPI struct {
 	sdk *MerkleSDK
 }
@@ -10,7 +12,7 @@ func NewOverwatchAPI(sdk *MerkleSDK) *OverwatchAPI {
 	}
 }
 
-func (o *OverwatchAPI) WatchAddress(address string) error {
+func (o *OverwatchAPI) WatchAddress(ctx context.Context, address string) error {
 	type AddAddressRequest struct {
 		Address string `json:"address"`
 	}
@@ -19,7 +21,7 @@ func (o *OverwatchAPI) WatchAddress(address string) error {
 		Address: address,
 	}
 
-	err := MakePost("https://mbs-api.merkle.io/v1/overwatch/addresses", o.sdk.ApiKey, req, nil)
+	err := MakePost(ctx, "https://mbs-api.merkle.io/v1/overwatch/addresses", o.sdk.ApiKey, req, nil)
 
 	if err != nil {
 		return err
@@ -28,8 +30,8 @@ func (o *OverwatchAPI) WatchAddress(address string) error {
 	return nil
 }
 
-func (o *OverwatchAPI) UnwatchAddress(address string) error {
-	err := MakeDel("https://mbs-api.merkle.io/v1/overwatch/addresses/"+address, o.sdk.ApiKey, nil, nil)
+func (o *OverwatchAPI) UnwatchAddress(ctx context.Context, address string) error {
+	err := MakeDel(ctx, "https://mbs-api.merkle.io/v1/overwatch/addresses/"+address, o.sdk.ApiKey, nil, nil)
 
 	if err != nil {
 		return err
@@ -39,8 +41,8 @@ func (o *OverwatchAPI) UnwatchAddress(address string) error {
 }
 
 // declare hash
-func (o *OverwatchAPI) Declare(chainId MerkleChainId, hash string) error {
-	err := MakePost("https://mbs-api.merkle.io/v1/overwatch/declare", o.sdk.ApiKey, map[string]interface{}{
+func (o *OverwatchAPI) Declare(ctx context.Context, chainId MerkleChainId, hash string) error {
+	err := MakePost(ctx, "https://mbs-api.merkle.io/v1/overwatch/declare", o.sdk.ApiKey, map[string]interface{}{
 		"hash":    hash,
 		"chainId": chainId,
 	}, nil)
