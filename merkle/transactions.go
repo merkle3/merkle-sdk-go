@@ -35,16 +35,29 @@ func (t *TransactionStream) Stream(chainId MerkleChainId) (chan *types.Transacti
 	}
 
 	go func() {
+		retries := 0
+
 		for {
+			retries++
+
 			var address = "txs.merkle.io"
 			ws, err := websocket.Dial(fmt.Sprintf("wss://%s/ws/%s/%d", address, t.sdk.ApiKey, int64(chainId)), "", fmt.Sprintf("http://%s/", address))
 
 			if err != nil {
+				// if it's less than 5 retries, try again
+				if retries < 5 {
+					time.Sleep(1 * time.Second)
+					continue
+				}
+
 				go func() {
 					errStream <- err
 				}()
 				return
 			}
+
+			// reset the retries
+			retries = 0
 
 			for {
 				var message []uint8
