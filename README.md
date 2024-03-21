@@ -95,6 +95,36 @@ func main() {
 }
 ```
 
+### Injection
+
+Inject a transaction into the public mempool. [Learn more](https://docs.merkle.io/transaction-network/injection)
+
+```golang
+package main
+
+import (
+    "github.com/merkle3/merkle-sdk-go/merkle"
+)
+
+func main() {
+    merkleSdk := merkle.New()
+
+    merkleSdk.SetApiKey("sk_mbs_......") // get one at https://mbs.merkle.io
+
+    tx := // a types.Transaction from go-ethereum
+
+    err := merkleSdk.Transactions().Inject(merkle.EthereumMainnet, tx)
+
+    // check for error
+    if err != nil {
+        fmt.Printf("error: %v\n", err)
+        return
+    }
+
+    fmt.Printf("transaction broadcasted\n")
+}
+```
+
 ## Private Mempool
 
 ### Stream auctions

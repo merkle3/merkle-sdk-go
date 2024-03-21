@@ -1,6 +1,7 @@
 package merkle
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -146,4 +147,42 @@ func (t *TransactionStream) Trace(hash string) (*MerkleTrace, error) {
 	}
 
 	return &trace, nil
+}
+
+// inject a tx
+func (t *TransactionStream) Inject(chainId MerkleChainId, tx *types.Transaction) error {
+	bts, err := tx.MarshalBinary()
+
+	if err != nil {
+		return fmt.Errorf("error marshalling tx: %s", err)
+	}
+
+	// body of eth_sendRawTransaction
+	body := map[string]interface{}{
+		"jsonrpc": "2.0",
+		"method":  "eth_sendRawTransaction",
+		"params":  []string{fmt.Sprintf("0x%x", bts)},
+		"id":      1,
+	}
+
+	bodyBytes, err := json.Marshal(body)
+
+	if err != nil {
+		return fmt.Errorf("error marshalling body: %s", err)
+	}
+
+	// url is https://txs.merkle.io/inject/<chainId>
+	// docs: https://docs.merkle.io/transaction-network/injection
+	res, err := http.Post(fmt.Sprintf("https://txs.merkle.io/rpc/%d", int64(chainId)), "application/json", bytes.NewReader(bodyBytes))
+
+	if err != nil {
+		return fmt.Errorf("error injecting tx: %s", err)
+	}
+
+	// check if we got a 200
+	if res.StatusCode != 200 {
+		return fmt.Errorf("error injecting tx: %s", res.Status)
+	}
+
+	return nil
 }
