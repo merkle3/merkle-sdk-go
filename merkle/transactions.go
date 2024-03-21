@@ -173,7 +173,7 @@ func (t *TransactionStream) Inject(chainId MerkleChainId, tx *types.Transaction)
 
 	// url is https://txs.merkle.io/inject/<chainId>
 	// docs: https://docs.merkle.io/transaction-network/injection
-	res, err := http.Post(fmt.Sprintf("https://txs.merkle.io/rpc/%d", int64(chainId)), "application/json", bytes.NewReader(bodyBytes))
+	res, err := http.Post(fmt.Sprintf("https://txs.merkle.io/rpc/%s/%d", t.sdk.ApiKey, int64(chainId)), "application/json", bytes.NewReader(bodyBytes))
 
 	if err != nil {
 		return fmt.Errorf("error injecting tx: %s", err)
