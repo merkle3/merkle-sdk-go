@@ -21,7 +21,7 @@ func main() {
 			fmt.Printf("error: %v\n", e)
 		case auction := <-auctions:
 			// process the transaction
-			fmt.Printf("hash: %v\n", auction.Id)
+			fmt.Printf("auction tx: %+v\n", auction.Transaction)
 		}
 	}
 }

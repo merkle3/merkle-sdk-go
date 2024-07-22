@@ -180,7 +180,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 
 		if err != nil {
 			go func() {
-				errStream <- err
+				errChannel <- err
 			}()
 			return
 		}
@@ -197,7 +197,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 					err := websocket.Message.Receive(conn, &rawJSON)
 
 					if err != nil {
-						errStream <- fmt.Errorf("failed to receive message: %s", err)
+						errChannel <- fmt.Errorf("failed to receive message: %s", err)
 						return
 					}
 
@@ -210,6 +210,14 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 					}
 				}
 
+				value := new(big.Int)
+				value, ok := value.SetString(rawAuction.Transaction.Value, 10)
+
+				if !ok {
+					errChannel <- fmt.Errorf("failed to parse value: %s", rawAuction.Transaction.Value)
+					return
+				}
+
 				auction := Auction{
 					Id:           rawAuction.Id,
 					FeeRecipient: rawAuction.FeeRecipient,
@@ -220,7 +228,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 						Hash:  common.HexToHash(rawAuction.Transaction.Hash),
 						From:  common.HexToAddress(rawAuction.Transaction.From),
 						To:    common.HexToAddress(rawAuction.Transaction.To),
-						Value: new(big.Int),
+						Value: value,
 						Data:  []byte(rawAuction.Transaction.Data),
 						Gas:   uint64(rawAuction.Transaction.Gas),
 					},
@@ -228,7 +236,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 					Connection: conn,
 				}
 
-				auctions <- &auction
+				auctionChannel <- &auction
 			}
 		}()
 	}
