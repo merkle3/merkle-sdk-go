@@ -218,6 +218,8 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 					return
 				}
 
+				data := common.Hex2Bytes(rawAuction.Transaction.Data)
+
 				auction := Auction{
 					Id:           rawAuction.Id,
 					FeeRecipient: rawAuction.FeeRecipient,
@@ -229,7 +231,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 						From:  common.HexToAddress(rawAuction.Transaction.From),
 						To:    common.HexToAddress(rawAuction.Transaction.To),
 						Value: value,
-						Data:  []byte(rawAuction.Transaction.Data),
+						Data:  data,
 						Gas:   uint64(rawAuction.Transaction.Gas),
 					},
 					// keep track of the connection for bids
