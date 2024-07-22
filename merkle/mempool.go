@@ -248,7 +248,7 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	return auctions, errStream
 }
 
-func (p *PrivatePool) SendBid(auction *Auction, tx *types.Transaction) (string, error) {
+func (p *PrivatePool) SendBid(txHash string, tx *types.Transaction) (string, error) {
 	bin, err := tx.MarshalBinary()
 
 	if err != nil {
@@ -257,7 +257,7 @@ func (p *PrivatePool) SendBid(auction *Auction, tx *types.Transaction) (string, 
 
 	hex := common.Bytes2Hex(bin)
 
-	return SendRawBid(auction.Transaction.Hash.String(), []string{hex})
+	return SendRawBid(txHash, []string{hex})
 }
 
 func (a *Auction) SendBid(tx types.Transaction) (string, error) {
