@@ -248,6 +248,18 @@ func (p *PrivatePool) Auctions() (chan *Auction, chan error) {
 	return auctions, errStream
 }
 
+func (p *PrivatePool) SendBid(auction *Auction, tx *types.Transaction) (string, error) {
+	bin, err := tx.MarshalBinary()
+
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal transaction: %s", err)
+	}
+
+	hex := common.Bytes2Hex(bin)
+
+	return SendRawBid(auction.Transaction.Hash.String(), []string{hex})
+}
+
 func (a *Auction) SendBid(tx types.Transaction) (string, error) {
 	bin, err := tx.MarshalBinary()
 
@@ -257,7 +269,7 @@ func (a *Auction) SendBid(tx types.Transaction) (string, error) {
 
 	hex := common.Bytes2Hex(bin)
 
-	return a.SendRawBid([]string{hex})
+	return SendRawBid(a.Transaction.Hash.String(), []string{hex})
 }
 
 type RelaySubmitRequest struct {
@@ -271,13 +283,13 @@ type BundleParams struct {
 	BlockNumber string   `json:"blockNumber"`
 }
 
-func (a *Auction) SendRawBid(txs []string) (string, error) {
-	// send a request to https://pool.merkle.io/relay
+func SendRawBid(hash string, txs []string) (string, error) {
+	// send a request to https://mempool.merkle.io/relay
 	payload := &RelaySubmitRequest{
 		Method: "eth_sendBundle",
 		Params: []BundleParams{
 			{
-				Txs:         txs,
+				Txs:         append([]string{hash}, txs...),
 				BlockNumber: "0",
 			},
 		},
@@ -290,7 +302,7 @@ func (a *Auction) SendRawBid(txs []string) (string, error) {
 		return "", fmt.Errorf("failed to marshal payload: %s", err)
 	}
 
-	res, err := http.Post("https://pool.merkle.io/relay", "application/json", bytes.NewBuffer(body))
+	res, err := http.Post("https://mempool.merkle.io/relay", "application/json", bytes.NewBuffer(body))
 
 	if err != nil {
 		return "", fmt.Errorf("failed to send request: %s", err)
